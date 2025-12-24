@@ -176,7 +176,7 @@ The full dashboard (`dashboard.html`) provides advanced features:
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/yourusername/vocab-master.git
+   git clone https://github.com/arrizarisky/Vocabulary-master-extension.git
    cd vocab-master
    ```
 
@@ -235,7 +235,7 @@ We welcome contributions! Here's how you can help:
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed by me
 
 ## 🙏 Acknowledgments
 
@@ -274,13 +274,13 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ### Getting Help
 
-1. **Check the [Issues](https://github.com/yourusername/vocab-master/issues)** page
+1. **Check the [Issues](https://github.com/arrizarisky/Vocabulary-master-extension/issues)** page
 2. **Create a new issue** if your problem isn't listed
 3. **Include details**: Chrome version, OS, steps to reproduce
 
 ## 📞 Support
 
-- **GitHub Issues**: [Report a bug or request a feature](https://github.com/yourusername/vocab-master/issues)
+- **GitHub Issues**: [Report a bug or request a feature](https://github.com/arrizarisky/Vocabulary-master-extension/issues)
 - **Email**: support@vocabmaster.com
 - **Documentation**: [Full documentation](https://docs.vocabmaster.com)
 
