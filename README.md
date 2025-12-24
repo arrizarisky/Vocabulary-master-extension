@@ -298,9 +298,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📱 Stay Updated
 
-- **GitHub**: [github.com/yourusername/vocab-master](https://github.com/yourusername/vocab-master)
-- **Twitter**: [@VocabMasterApp](https://twitter.com/VocabMasterApp)
-- **Website**: [vocabmaster.com](https://vocabmaster.com)
+- **GitHub**: [https://github.com/arrizarisky/Vocabulary-master-extension](https://github.com/yourusername/vocab-master)
+- **Twitter**: [@VocabMasterApp](https://twitter.com/VocabMasterApp) Coming Soon
+- **Website**: [vocabmaster.com](https://vocabmaster.com) Coming Soon
 
 ---
 
