@@ -7,7 +7,7 @@
   ![License](https://img.shields.io/badge/license-MIT-orange)
   ![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-yellow)
 
-  <img src="icons/icon128.png" alt="Vocab Master Icon" width="128" height="128">
+  <img src="icons/icon.png" alt="Vocab Master Icon" width="128" height="128">
 
 **Capture, Save, and Master English Vocabulary Effortlessly**
 
@@ -52,7 +52,7 @@ _(Pending publication)_
 
    ```bash
    # Clone the repository or download ZIP
-   git clone https://github.com/yourusername/vocab-master.git
+   git clone https://github.com/arrizarisky/Vocabulary-master-extension.git
    ```
 
 2. **Load in Chrome**
