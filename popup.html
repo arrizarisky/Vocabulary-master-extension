@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      body {
+        width: 400px;
+        padding: 15px;
+        font-family: Arial, sans-serif;
+      }
+
+      .header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        text-align: center;
+      }
+
+      .header h2 {
+        margin: 0;
+        font-size: 18px;
+      }
+
+      .form-group {
+        margin-bottom: 15px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+        color: #333;
+      }
+
+      textarea,
+      input {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+      }
+
+      textarea {
+        min-height: 80px;
+        resize: vertical;
+      }
+
+      .btn {
+        width: 100%;
+        padding: 12px;
+        margin: 5px 0;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: all 0.3s;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        color: white;
+      }
+
+      .btn-primary:hover {
+        background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+      }
+
+      .btn-secondary {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+      }
+
+      .btn-secondary:hover {
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        transform: translateY(-2px);
+      }
+
+      .btn-danger {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        color: white;
+      }
+
+      .btn-danger:hover {
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+      }
+
+      .tabs {
+        display: flex;
+        margin: 15px 0;
+        border-bottom: 2px solid #e5e7eb;
+      }
+
+      .tab {
+        padding: 10px 20px;
+        cursor: pointer;
+        border-bottom: 3px solid transparent;
+        font-weight: 500;
+      }
+
+      .tab.active {
+        border-bottom-color: #3b82f6;
+        color: #3b82f6;
+      }
+
+      .tab-content {
+        display: none;
+      }
+
+      .tab-content.active {
+        display: block;
+      }
+
+      .vocab-list {
+        max-height: 250px;
+        overflow-y: auto;
+        margin-top: 15px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 10px;
+      }
+
+      .vocab-item {
+        padding: 10px;
+        margin-bottom: 10px;
+        background: #f9fafb;
+        border-radius: 6px;
+        border-left: 4px solid #3b82f6;
+      }
+
+      .vocab-item:hover {
+        background: #f3f4f6;
+      }
+
+      .vocab-text {
+        font-weight: bold;
+        margin-bottom: 5px;
+        color: #111827;
+      }
+
+      .vocab-translation {
+        color: #059669;
+        font-size: 14px;
+        margin-bottom: 5px;
+        padding: 5px;
+        background: #d1fae5;
+        border-radius: 4px;
+      }
+
+      .vocab-meta {
+        font-size: 12px;
+        color: #6b7280;
+        display: flex;
+        justify-content: space-between;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 30px;
+        color: #9ca3af;
+      }
+
+      .notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #10b981;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        animation: slideIn 0.3s ease;
+        z-index: 1000;
+      }
+
+      @keyframes slideIn {
+        from {
+          transform: translateX(100px);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h2>📚 Vocab Master Pro</h2>
+      <p style="margin: 5px 0 0 0; font-size: 12px; opacity: 0.9">
+        Your personal vocabulary collector
+      </p>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active" data-tab="add">➕ Add New</div>
+      <div class="tab" data-tab="view">👁️ View All</div>
+      <div class="tab" data-tab="manage">⚙️ Manage</div>
+    </div>
+
+    <!-- TAB 1: ADD NEW VOCAB -->
+    <div id="add-tab" class="tab-content active">
+      <div class="form-group">
+        <label for="englishText">📝 English Text</label>
+        <textarea
+          id="englishText"
+          placeholder="Enter English sentence here..."
+        ></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="translation">🔤 Translation (Optional)</label>
+        <textarea
+          id="translation"
+          placeholder="Enter Indonesian translation..."
+        ></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="notes">📝 Notes (Optional)</label>
+        <textarea
+          id="notes"
+          placeholder="Add notes, context, or example usage..."
+        ></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="tags">🏷️ Tags (comma separated)</label>
+        <input
+          type="text"
+          id="tags"
+          placeholder="e.g., business, technology, daily conversation"
+        />
+      </div>
+
+      <button class="btn btn-primary" id="saveManual">
+        💾 Save Vocabulary
+      </button>
+
+      <button class="btn btn-secondary" id="saveCurrent">
+        🌐 Save from Current Page
+      </button>
+
+      <div class="vocab-list" id="recentList">
+        <!-- Recent vocabs will appear here -->
+      </div>
+    </div>
+
+    <!-- TAB 2: VIEW ALL VOCAB -->
+    <div id="view-tab" class="tab-content">
+      <input
+        type="text"
+        id="searchVocab"
+        placeholder="🔍 Search vocabulary..."
+        style="
+          width: 100%;
+          padding: 10px;
+          margin-bottom: 15px;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+        "
+      />
+
+      <div class="vocab-list" id="allVocabList">
+        <!-- All vocabs will appear here -->
+      </div>
+    </div>
+
+    <!-- TAB 3: MANAGE VOCAB -->
+    <div id="manage-tab" class="tab-content">
+      <div style="text-align: center; margin-bottom: 20px">
+        <div
+          style="font-size: 24px; font-weight: bold; color: #3b82f6"
+          id="totalCount"
+        >
+          0
+        </div>
+        <div style="color: #6b7280; margin-bottom: 20px">Total Vocabulary</div>
+      </div>
+
+      <button class="btn btn-primary" id="exportBtn">📥 Export to CSV</button>
+
+      <button class="btn btn-secondary" id="importBtn">
+        📤 Import from CSV
+      </button>
+
+      <button class="btn btn-secondary" id="openFullView">
+        🖥️ Open Full Dashboard
+      </button>
+
+      <button class="btn btn-danger" id="clearAllBtn">🗑️ Clear All Data</button>
+
+      <div
+        style="
+          margin-top: 20px;
+          padding: 15px;
+          background: #fef3c7;
+          border-radius: 8px;
+          border-left: 4px solid #f59e0b;
+        "
+      >
+        <strong>💡 Tip:</strong> You can also save text by selecting it on any
+        webpage and clicking the extension icon!
+      </div>
+    </div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
