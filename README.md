@@ -282,7 +282,7 @@ This project is licensed by me
 
 - **GitHub Issues**: [Report a bug or request a feature](https://github.com/arrizarisky/Vocabulary-master-extension/issues)
 - **Email**: support@vocabmaster.com
-- **Documentation**: [Full documentation](https://docs.vocabmaster.com)
+- **Documentation**: [Full documentation](https://arrizarisky.github.io/doc-vocabulary-master/)
 
 ---
 
@@ -300,7 +300,7 @@ This project is licensed by me
 
 - **GitHub**: [https://github.com/arrizarisky/Vocabulary-master-extension](https://github.com/yourusername/vocab-master)
 - **Twitter**: [@VocabMasterApp](https://twitter.com/VocabMasterApp) Coming Soon
-- **Website**: [vocabmaster.com](https://vocabmaster.com) Coming Soon
+- **Website**: [vocabmaster.com](https://arrizarisky.github.io/doc-vocabulary-master/)
 
 ---
 
