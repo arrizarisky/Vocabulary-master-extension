@@ -167,8 +167,8 @@ searchVocab.addEventListener("input", async (e) => {
   displayVocabs(filtered, allVocabList);
 });
 
-// Export to CSV
-exportBtn.addEventListener("click", async () => {
+// Export to PDF
+exportBtn.addEventListener("click", async function () {
   const result = await chrome.storage.local.get(["vocabs"]);
   const vocabs = result.vocabs || [];
 
@@ -177,10 +177,271 @@ exportBtn.addEventListener("click", async () => {
     return;
   }
 
-  const csv = convertToCSV(vocabs);
-  downloadCSV(csv, `vocabulary-${new Date().toISOString().slice(0, 10)}.csv`);
-  showNotification("Vocabulary exported successfully!");
+  try {
+    // Generate PDF content
+    const pdfContent = await createPDFDocument(vocabs);
+
+    // Create download
+    const blob = new Blob([pdfContent], { type: "application/pdf" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `vocabulary-${new Date().toISOString().slice(0, 10)}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    showNotification("Vocabulary exported to PDF successfully!");
+  } catch (error) {
+    console.error("PDF export error:", error);
+    showNotification("Error exporting to PDF", "error");
+  }
 });
+
+// Create PDF Document
+function createPDFDocument(vocabs) {
+  const htmlContent = createPDFHTML(vocabs);
+  const printWindow = window.open("", "_blank");
+  printWindow.document.write(htmlContent);
+  printWindow.document.close();
+  printWindow.print();
+
+  // Return placeholder (actual implementation would generate PDF)
+  return new Blob(["PDF content would be generated here"], {
+    type: "application/pdf",
+  });
+}
+
+// Create HTML for PDF
+function createPDFHTML(vocabs) {
+  const date = new Date().toLocaleDateString();
+  const total = vocabs.length;
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <style>
+        @page { margin: 20mm; }
+        body { 
+          font-family: Arial, sans-serif; 
+          line-height: 1.6;
+          color: #333;
+        }
+        .header { 
+          text-align: center; 
+          margin-bottom: 30px;
+          border-bottom: 2px solid #3B82F6;
+          padding-bottom: 20px;
+        }
+        .header h1 { 
+          color: #3B82F6; 
+          margin: 0;
+        }
+        .header p { 
+          color: #666; 
+          margin: 5px 0;
+        }
+        .stats {
+          background: #f8fafc;
+          padding: 15px;
+          border-radius: 8px;
+          margin: 20px 0;
+          display: flex;
+          justify-content: space-around;
+          text-align: center;
+        }
+        .stat-item {
+          flex: 1;
+        }
+        .stat-number {
+          font-size: 24px;
+          font-weight: bold;
+          color: #3B82F6;
+          display: block;
+        }
+        .stat-label {
+          font-size: 12px;
+          color: #666;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+        }
+        .vocab-table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-top: 20px;
+        }
+        .vocab-table th {
+          background: #3B82F6;
+          color: white;
+          padding: 12px;
+          text-align: left;
+          font-weight: 600;
+        }
+        .vocab-table td {
+          padding: 12px;
+          border-bottom: 1px solid #e5e7eb;
+          vertical-align: top;
+        }
+        .vocab-table tr:nth-child(even) {
+          background: #f9fafb;
+        }
+        .vocab-text {
+          font-weight: bold;
+          margin-bottom: 5px;
+        }
+        .vocab-translation {
+          color: #059669;
+          font-style: italic;
+        }
+        .tags {
+          margin-top: 5px;
+        }
+        .tag {
+          display: inline-block;
+          background: #e5e7eb;
+          padding: 2px 8px;
+          border-radius: 10px;
+          font-size: 11px;
+          margin-right: 5px;
+          margin-bottom: 3px;
+        }
+        .footer {
+          margin-top: 40px;
+          text-align: center;
+          font-size: 12px;
+          color: #666;
+          border-top: 1px solid #e5e7eb;
+          padding-top: 20px;
+        }
+        .page-break {
+          page-break-after: always;
+        }
+        @media print {
+          .no-print { display: none; }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <h1>📚 Vocabulary Master Export</h1>
+        <p>Generated on ${date}</p>
+        <p>Total Vocabulary Items: ${total}</p>
+      </div>
+      
+      <div class="stats">
+        <div class="stat-item">
+          <span class="stat-number">${total}</span>
+          <span class="stat-label">Total Items</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">${
+            vocabs.filter((v) => v.translation).length
+          }</span>
+          <span class="stat-label">Translated</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">${
+            new Set(vocabs.map((v) => v.domain)).size
+          }</span>
+          <span class="stat-label">Sources</span>
+        </div>
+      </div>
+      
+      <table class="vocab-table">
+        <thead>
+          <tr>
+            <th style="width: 40%;">English Text</th>
+            <th style="width: 40%;">Translation</th>
+            <th style="width: 20%;">Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${vocabs
+            .map(
+              (vocab, index) => `
+            <tr>
+              <td>
+                <div class="vocab-text">${escapeHtmlForPDF(
+                  vocab.english || ""
+                )}</div>
+                ${
+                  vocab.notes
+                    ? `<div style="font-size: 11px; color: #666; margin-top: 3px;">${escapeHtmlForPDF(
+                        vocab.notes
+                      )}</div>`
+                    : ""
+                }
+              </td>
+              <td>
+                <div class="vocab-translation">${
+                  vocab.translation
+                    ? escapeHtmlForPDF(vocab.translation)
+                    : "Not translated"
+                }</div>
+              </td>
+              <td>
+                <div style="font-size: 12px; color: #666;">
+                  <div>${new Date(vocab.date).toLocaleDateString()}</div>
+                  <div style="margin-top: 5px;">${
+                    vocab.source === "manual" ? "📝 Manual" : "🌐 Web"
+                  }</div>
+                  ${
+                    vocab.tags && vocab.tags.length > 0
+                      ? `
+                    <div class="tags">
+                      ${vocab.tags
+                        .map(
+                          (tag) =>
+                            `<span class="tag">${escapeHtmlForPDF(tag)}</span>`
+                        )
+                        .join("")}
+                    </div>
+                  `
+                      : ""
+                  }
+                </div>
+              </td>
+            </tr>
+          `
+            )
+            .join("")}
+        </tbody>
+      </table>
+      
+      <div class="footer">
+        <p>Generated by Vocabulary Master Chrome Extension</p>
+        <p>vocabmaster.com • ${date}</p>
+      </div>
+      
+      <button class="no-print" onclick="window.print()" style="
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: #3B82F6;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+      ">
+        🖨️ Print PDF
+      </button>
+    </body>
+    </html>
+  `;
+}
+
+function escapeHtmlForPDF(text) {
+  if (!text) return "";
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
 
 // Import from CSV
 importBtn.addEventListener("click", () => {

@@ -1,3 +1,4 @@
+// Dashboard Manager dengan PDF Export yang berfungsi
 class DashboardManager {
   constructor() {
     this.allVocabs = [];
@@ -13,7 +14,6 @@ class DashboardManager {
 
   async loadVocabularies() {
     try {
-      // Use chrome storage API
       const result = await new Promise((resolve) => {
         chrome.storage.local.get(["vocabs"], resolve);
       });
@@ -26,16 +26,6 @@ class DashboardManager {
     }
   }
 
-  async saveVocabularies() {
-    try {
-      await new Promise((resolve) => {
-        chrome.storage.local.set({ vocabs: this.allVocabs }, resolve);
-      });
-    } catch (error) {
-      console.error("Error saving vocabularies:", error);
-    }
-  }
-
   setupEventListeners() {
     // Search functionality
     const searchBox = document.getElementById("searchBox");
@@ -45,10 +35,10 @@ class DashboardManager {
       });
     }
 
-    // Export button
+    // Export PDF button - PERBAIKAN DI SINI
     const exportBtn = document.getElementById("exportBtn");
     if (exportBtn) {
-      exportBtn.addEventListener("click", () => this.exportToCSV());
+      exportBtn.addEventListener("click", () => this.exportToPDF());
     }
 
     // Clear all button
@@ -79,6 +69,7 @@ class DashboardManager {
       saveEdit.addEventListener("click", () => this.saveEdit());
     }
 
+    // Table event delegation
     const tableBody = document.getElementById("vocabTableBody");
     if (tableBody) {
       tableBody.addEventListener("click", (e) => {
@@ -95,6 +86,131 @@ class DashboardManager {
       });
     }
   }
+
+  // PDF Export
+  async exportToPDF() {
+    if (this.allVocabs.length === 0) {
+      this.showNotification("No vocabulary to export", "error");
+      return;
+    }
+
+    // Buat window baru untuk printing
+    const printWindow = window.open("", "_blank");
+
+    if (!printWindow) {
+      this.showNotification("Please allow pop-ups for PDF export", "error");
+      return;
+    }
+
+    // Generate HTML untuk print
+    const printHTML = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Vocabulary Export</title>
+      <style>
+        body { font-family: Arial; margin: 20px; }
+        @media print {
+          @page { margin: 15mm; size: A4; }
+          .no-print { display: none; }
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #3B82F6; color: white; padding: 10px; }
+        td { padding: 8px; border: 1px solid #ddd; }
+      </style>
+    </head>
+    <body>
+      <h2>Vocabulary Master Export</h2>
+      <p>${new Date().toLocaleDateString()}</p>
+      
+      <table>
+        <thead>
+          <tr>
+            <th>English</th>
+            <th>Translation</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${this.allVocabs
+            .map(
+              (v) => `
+            <tr>
+              <td>${v.english || ""}</td>
+              <td>${v.translation || ""}</td>
+              <td>${new Date(v.date).toLocaleDateString()}</td>
+            </tr>
+          `
+            )
+            .join("")}
+        </tbody>
+      </table>
+      
+      <div class="no-print" style="margin-top: 30px; padding: 15px; background: #f0f0f0;">
+        <p><strong>To save as PDF:</strong></p>
+        <p>1. Press <strong>Ctrl+P</strong> (Windows) or <strong>Cmd+P</strong> (Mac)</p>
+        <p>2. Choose "Save as PDF" as printer destination</p>
+        <p>3. Click "Save"</p>
+        <button onclick="window.print()" style="
+          background: #3B82F6;
+          color: white;
+          border: none;
+          padding: 10px 20px;
+          margin-top: 10px;
+          cursor: pointer;
+        ">
+          🖨️ Print / Save as PDF
+        </button>
+        <button onclick="window.close()" style="
+          background: #666;
+          color: white;
+          border: none;
+          padding: 10px 20px;
+          margin-top: 10px;
+          cursor: pointer;
+          margin-left: 10px;
+        ">
+          Close
+        </button>
+      </div>
+      
+      <script>
+        // Auto-trigger print dialog
+        window.onload = function() {
+          setTimeout(() => {
+            try {
+              window.print();
+            } catch (e) {
+              console.log('Print requires user interaction');
+            }
+          }, 500);
+        };
+        
+        // Close window after print
+        window.onafterprint = function() {
+          setTimeout(() => {
+            window.close();
+          }, 1000);
+        };
+      </script>
+    </body>
+    </html>
+  `;
+
+    printWindow.document.write(printHTML);
+    printWindow.document.close();
+
+    this.showNotification("Opening print dialog...", "info");
+  }
+
+  // Helper function to truncate text
+  truncateText(text, maxLength) {
+    if (!text) return "";
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength - 3) + "...";
+  }
+
+  // ============ OTHER FUNCTIONS (tetap sama) ============
 
   renderDashboard() {
     this.updateStats();
@@ -127,7 +243,6 @@ class DashboardManager {
 
     if (emptyState) emptyState.style.display = "none";
 
-    // Sort by date (newest first)
     const sortedVocabs = [...this.allVocabs].sort(
       (a, b) => new Date(b.date) - new Date(a.date)
     );
@@ -141,9 +256,9 @@ class DashboardManager {
   }
 
   createTableRow(vocab, index) {
-    const english = this.escapeHtml(vocab.english);
+    const english = this.escapeHTML(vocab.english || "");
     const translation = vocab.translation
-      ? this.escapeHtml(vocab.translation)
+      ? this.escapeHTML(vocab.translation)
       : "No translation";
     const source =
       vocab.source === "manual" ? "📝 Manual" : `🌐 ${vocab.domain || "Web"}`;
@@ -158,7 +273,7 @@ class DashboardManager {
     const tagsHtml =
       vocab.tags && vocab.tags.length > 0
         ? `<div class="tag-container">${vocab.tags
-            .map((tag) => `<span class="tag">${this.escapeHtml(tag)}</span>`)
+            .map((tag) => `<span class="tag">${this.escapeHTML(tag)}</span>`)
             .join("")}</div>`
         : "";
 
@@ -168,7 +283,7 @@ class DashboardManager {
           <div class="vocab-text">${english}</div>
           ${
             vocab.notes
-              ? `<div style="color: #6b7280; font-size: 12px; margin-top: 5px;">${this.escapeHtml(
+              ? `<div style="color: #6b7280; font-size: 12px; margin-top: 5px;">${this.escapeHTML(
                   vocab.notes
                 )}</div>`
               : ""
@@ -192,11 +307,15 @@ class DashboardManager {
             })}
           </div>
         </td>
-       <td>
-            <div class="action-buttons">
-                <button class="action-btn edit-btn" data-index="${index}">✏️ Edit</button>
-                <button class="action-btn delete-btn" data-index="${index}">🗑️ Delete</button>
-            </div>
+        <td>
+          <div class="action-buttons">
+            <button class="action-btn edit-btn" data-index="${index}">
+              ✏️ Edit
+            </button>
+            <button class="action-btn delete-btn" data-index="${index}">
+              🗑️ Delete
+            </button>
+          </div>
         </td>
       </tr>
     `;
@@ -212,7 +331,7 @@ class DashboardManager {
 
     const filtered = this.allVocabs.filter(
       (vocab) =>
-        vocab.english.toLowerCase().includes(searchTerm) ||
+        (vocab.english && vocab.english.toLowerCase().includes(searchTerm)) ||
         (vocab.translation &&
           vocab.translation.toLowerCase().includes(searchTerm)) ||
         (vocab.notes && vocab.notes.toLowerCase().includes(searchTerm)) ||
@@ -246,7 +365,6 @@ class DashboardManager {
       .join("");
   }
 
-  // EDIT FUNCTION
   editVocabulary(index) {
     if (index < 0 || index >= this.allVocabs.length) {
       this.showNotification("Invalid vocabulary index", "error");
@@ -256,7 +374,6 @@ class DashboardManager {
     const vocab = this.allVocabs[index];
     this.currentEditIndex = index;
 
-    // Fill modal with current data
     document.getElementById("editEnglish").value = vocab.english || "";
     document.getElementById("editTranslation").value = vocab.translation || "";
     document.getElementById("editNotes").value = vocab.notes || "";
@@ -264,11 +381,9 @@ class DashboardManager {
       ? vocab.tags.join(", ")
       : "";
 
-    // Show modal
     document.getElementById("editModal").style.display = "flex";
   }
 
-  // DELETE FUNCTION
   async deleteVocabulary(index) {
     if (index < 0 || index >= this.allVocabs.length) {
       this.showNotification("Invalid vocabulary index", "error");
@@ -276,24 +391,28 @@ class DashboardManager {
     }
 
     const vocab = this.allVocabs[index];
-    const confirmDelete = confirm(
-      `Delete this vocabulary?\n\nEnglish: ${vocab.english.substring(
-        0,
-        50
-      )}...\n\nThis action cannot be undone.`
-    );
+    const textPreview =
+      vocab.english.length > 50
+        ? vocab.english.substring(0, 50) + "..."
+        : vocab.english;
 
-    if (!confirmDelete) return;
+    if (
+      !confirm(
+        `Delete this vocabulary?\n\n"${textPreview}"\n\nThis action cannot be undone.`
+      )
+    ) {
+      return;
+    }
 
-    // Remove from array
-    this.allVocabs.splice(index, 1);
-
-    // Save to storage
-    await this.saveVocabularies();
-
-    // Update UI
-    this.renderDashboard();
-    this.showNotification("Vocabulary deleted successfully", "success");
+    try {
+      this.allVocabs.splice(index, 1);
+      await this.saveVocabularies();
+      this.renderDashboard();
+      this.showNotification("Vocabulary deleted successfully", "success");
+    } catch (error) {
+      console.error("Delete error:", error);
+      this.showNotification("Error deleting vocabulary", "error");
+    }
   }
 
   async saveEdit() {
@@ -305,27 +424,28 @@ class DashboardManager {
       return;
     }
 
-    // Update vocabulary
-    this.allVocabs[this.currentEditIndex] = {
-      ...this.allVocabs[this.currentEditIndex],
-      english: english,
-      translation: document.getElementById("editTranslation").value.trim(),
-      notes: document.getElementById("editNotes").value.trim(),
-      tags: document
-        .getElementById("editTags")
-        .value.split(",")
-        .map((tag) => tag.trim())
-        .filter((tag) => tag),
-      date: new Date().toISOString(), // Update timestamp
-    };
+    try {
+      this.allVocabs[this.currentEditIndex] = {
+        ...this.allVocabs[this.currentEditIndex],
+        english: english,
+        translation: document.getElementById("editTranslation").value.trim(),
+        notes: document.getElementById("editNotes").value.trim(),
+        tags: document
+          .getElementById("editTags")
+          .value.split(",")
+          .map((tag) => tag.trim())
+          .filter((tag) => tag),
+        date: new Date().toISOString(),
+      };
 
-    // Save to storage
-    await this.saveVocabularies();
-
-    // Close modal and update UI
-    this.closeEditModal();
-    this.renderDashboard();
-    this.showNotification("Vocabulary updated successfully", "success");
+      await this.saveVocabularies();
+      this.closeEditModal();
+      this.renderDashboard();
+      this.showNotification("Vocabulary updated successfully", "success");
+    } catch (error) {
+      console.error("Save edit error:", error);
+      this.showNotification("Error updating vocabulary", "error");
+    }
   }
 
   closeEditModal() {
@@ -334,72 +454,29 @@ class DashboardManager {
   }
 
   openAddModal() {
-    // For now, redirect to popup or show simple add form
-    // In a real implementation, you would open a modal
     alert(
       "To add new vocabulary, please use the extension popup by clicking the extension icon in your browser toolbar."
     );
   }
 
-  async exportToCSV() {
-    if (this.allVocabs.length === 0) {
-      this.showNotification("No vocabulary to export", "error");
-      return;
-    }
-
+  async saveVocabularies() {
     try {
-      const headers = [
-        "English",
-        "Translation",
-        "Notes",
-        "Tags",
-        "Source",
-        "Domain",
-        "Date",
-      ];
-      const rows = this.allVocabs.map((v) => [
-        v.english,
-        v.translation || "",
-        v.notes || "",
-        v.tags ? v.tags.join(", ") : "",
-        v.source,
-        v.domain || "",
-        v.date,
-      ]);
-
-      const csvContent = [
-        headers.join(","),
-        ...rows.map((row) =>
-          row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")
-        ),
-      ].join("\n");
-
-      // Create download
-      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `vocabulary-export-${new Date()
-        .toISOString()
-        .slice(0, 10)}.csv`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-
-      this.showNotification("Vocabulary exported successfully", "success");
+      await new Promise((resolve) => {
+        chrome.storage.local.set({ vocabs: this.allVocabs }, resolve);
+      });
     } catch (error) {
-      console.error("Export error:", error);
-      this.showNotification("Error exporting vocabulary", "error");
+      console.error("Error saving vocabularies:", error);
     }
   }
 
   async clearAllData() {
-    const confirmClear = confirm(
-      "Are you sure you want to delete ALL vocabulary data?\n\nThis action cannot be undone!"
-    );
-
-    if (!confirmClear) return;
+    if (
+      !confirm(
+        "Are you sure you want to delete ALL vocabulary data?\n\nThis action cannot be undone!"
+      )
+    ) {
+      return;
+    }
 
     try {
       this.allVocabs = [];
@@ -413,11 +490,9 @@ class DashboardManager {
   }
 
   showNotification(message, type = "success") {
-    // Remove existing notifications
-    const existingNotifications = document.querySelectorAll(".notification");
-    existingNotifications.forEach((n) => n.remove());
+    const existing = document.querySelectorAll(".notification");
+    existing.forEach((n) => n.remove());
 
-    // Create new notification
     const notification = document.createElement("div");
     notification.className = `notification ${type}`;
     notification.innerHTML = `
@@ -427,7 +502,6 @@ class DashboardManager {
 
     document.body.appendChild(notification);
 
-    // Auto remove after 3 seconds
     setTimeout(() => {
       notification.style.animation = "slideOut 0.3s ease";
       setTimeout(() => {
@@ -438,19 +512,15 @@ class DashboardManager {
     }, 3000);
   }
 
-  escapeHtml(text) {
+  escapeHTML(text) {
     const div = document.createElement("div");
     div.textContent = text;
     return div.innerHTML;
   }
 }
 
-// Initialize dashboard when page loads
-let dashboard;
-
+// Initialize dashboard
 document.addEventListener("DOMContentLoaded", () => {
-  dashboard = new DashboardManager();
-
-  // Make dashboard instance available globally for onclick handlers
+  const dashboard = new DashboardManager();
   window.dashboard = dashboard;
 });

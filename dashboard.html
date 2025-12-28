@@ -445,7 +445,7 @@
         </button>
 
         <button class="btn btn-success" id="exportBtn">
-          <span style="font-size: 18px">📥</span> Export to CSV
+          <span style="font-size: 18px">📄</span> Export to PDF
         </button>
 
         <button class="btn btn-danger" id="clearAllBtn">
@@ -553,6 +553,10 @@
       </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script>
+      window.jspdf = window.jspdf || null;
+    </script>
     <script src="dashboard.js"></script>
   </body>
 </html>
